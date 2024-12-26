@@ -15,21 +15,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { MoonLoader } from 'react-spinners';
+import { MoonLoader } from "react-spinners";
+import Link from "next/link";
 
-const formSchema = z.object({
-  username: z.string().min(2).max(50),
-});
+type FormType = "sign-in" | "sign-up";
 
-type formType = "sign-in" | "sign-up";
+const authFormSchema = (formType: FormType) => {
+  return z.object({
+    email: z.string().email(),
+    fullName: formType === "sign-up" ? z.string().min(2).max(50) : z.string().optional()
+  })
+}
 
-const AuthForm = ({ type }: { type: formType }) => {
+const AuthForm = ({ type }: { type: FormType }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const formSchema = authFormSchema(type)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      fullName: "", email: ""
     },
   });
 
@@ -45,7 +52,7 @@ const AuthForm = ({ type }: { type: formType }) => {
           className="flex max-h-[800px] w-full max-w-[580px] flex-col justify-center space-y-6 transition-all lg:h-full lg:space-y-8"
         >
           <h1 className="text-center text-2xl font-bold text-light-100 md:text-left">
-            {type === "sign-in" ? "Sign In" : "Sign Up"}
+            {type === "sign-in" ? "Acesse sua conta" : "Criar conta"}
           </h1>
           {type === "sign-up" && (
             <FormField
@@ -65,7 +72,7 @@ const AuthForm = ({ type }: { type: formType }) => {
                       />
                     </FormControl>
                   </div>
-                  <FormMessage className="text-red text-[14px] leading-[20px] font-normal ml-4" />
+                  <FormMessage className="text-red-500 text-[14px] leading-[20px] font-normal ml-4" />
                 </FormItem>
               )}
             />
@@ -87,7 +94,7 @@ const AuthForm = ({ type }: { type: formType }) => {
                     />
                   </FormControl>
                 </div>
-                <FormMessage className="text-red text-[14px] leading-[20px] font-normal ml-4" />
+                <FormMessage className="text-red-500 text-[14px] leading-[20px] font-normal ml-4" />
               </FormItem>
             )}
           />
@@ -96,11 +103,29 @@ const AuthForm = ({ type }: { type: formType }) => {
             type="submit"
             className="h-[66px] bg-green-500 hover:bg-green-700 transition-all rounded-full text-[14px] leading-[20px] font-medium"
           >
-            {type === "sign-in" ? "Sign In" : "Sign Up"}
-            {isLoading && (
-              <MoonLoader size={20} />
-            )}
+            {type === "sign-in" ? "Acessar" : "Criar"}
+            {isLoading && <MoonLoader size={20} />}
           </Button>
+
+          {errorMessage && (
+            <p className=" mx-auto w-fit rounded-xl bg-error/5 px-8 py-4 text-center text-error">
+              *{errorMessage}
+            </p>
+          )}
+
+          <div className="flex text-[14px] leading-[20px] font-normal text-center lg:text-left">
+            <p className="text-light-100">
+              {type === "sign-in"
+                ? "Não tem uma conta ?"
+                : "Já tem uma conta ?"}
+            </p>
+            <Link
+              href={type === "sign-in" ? "/sign-up" : "/sign-in"}
+              className="ml-1 font-medium text-blue-500"
+            >
+              {type === "sign-in" ? "Criar" : "Acessar"}
+            </Link>
+          </div>
         </form>
       </Form>
     </>
